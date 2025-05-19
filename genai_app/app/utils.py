@@ -1,3 +1,4 @@
+import os
 import pytesseract
 from PIL import Image
 from PyPDF2 import PdfReader
@@ -5,14 +6,20 @@ import docx
 import pandas as pd
 import sqlite3
 import whisper
-import os
-import chromadb
-from sentence_transformers import SentenceTransformer
 
-# Initialize once
-chroma_client = chromadb.PersistentClient(path="../vector_store")
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")  # lightweight + fast
+# LangChain & Embeddings
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.docstore.document import Document
 
+# Embedding setup
+embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+base_vectorstore_path = os.path.join("..", "vector_store")
+
+# ----------------------------------------
+# File extraction logic
+# ----------------------------------------
 def extract_text_from_file(path):
     ext = path.split('.')[-1].lower()
     try:
@@ -36,44 +43,74 @@ def extract_text_from_file(path):
         print(f"⚠️ Error extracting {ext} file: {e}")
     return ""
 
+# ----------------------------------------
+# SQLite table text extraction
+# ----------------------------------------
 def extract_sqlite(path):
     conn = sqlite3.connect(path)
     text = ""
-    for table in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
-        df = pd.read_sql_query(f"SELECT * FROM {table[0]}", conn)
-        text += df.to_csv(index=False)
+    try:
+        for table in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+            df = pd.read_sql_query(f"SELECT * FROM {table[0]}", conn)
+            text += df.to_csv(index=False)
+    except Exception as e:
+        print(f"⚠️ SQLite extract error: {e}")
+    finally:
+        conn.close()
     return text
 
+# ----------------------------------------
+# Transcribe media (audio/video)
+# ----------------------------------------
 def transcribe_media(path):
     model = whisper.load_model("base")
     result = model.transcribe(path)
-    return result["text"]
+    return result.get("text", "")
 
+# ----------------------------------------
+# Embed and store with LangChain + Chroma
+# ----------------------------------------
 def embed_and_store(text, user_id):
-    chunks = [text[i:i+1000] for i in range(0, len(text), 1000)]
-    embeddings = embedding_model.encode(chunks).tolist()
+    chunks = split_text(text)
+    documents = [Document(page_content=chunk) for chunk in chunks]
 
-    collection_name = f"user_{user_id}_docs"
-    try:
-        chroma_client.delete_collection(name=collection_name)
-    except:
-        pass
+    vector_path = os.path.join(base_vectorstore_path, user_id)
+    if os.path.exists(vector_path):
+        # Clear previous version (optional)
+        for file in os.listdir(vector_path):
+            os.remove(os.path.join(vector_path, file))
 
-    collection = chroma_client.get_or_create_collection(name=collection_name)
-    collection.add(
-        documents=chunks,
-        embeddings=embeddings,
-        ids=[f"{user_id}_{i}" for i in range(len(chunks))]
+    vectordb = Chroma.from_documents(
+        documents=documents,
+        embedding=embedding_model,
+        persist_directory=vector_path
     )
-    print(f"[Chroma] Stored {len(chunks)} chunks for user {user_id}")
+    vectordb.persist()
+    print(f"[Chroma] Stored {len(documents)} chunks for user {user_id}")
 
-def retrieve_relevant_chunks(user_id, query):
-    collection_name = f"user_{user_id}_docs"
+# ----------------------------------------
+# Retrieve relevant chunks for query
+# ----------------------------------------
+def retrieve_relevant_chunks(user_id, query, k=3):
+    vector_path = os.path.join(base_vectorstore_path, user_id)
     try:
-        collection = chroma_client.get_collection(name=collection_name)
-        query_embedding = embedding_model.encode([query])[0].tolist()
-        results = collection.query(query_embeddings=[query_embedding], n_results=3)
-        return "\n".join(results["documents"][0])
+        vectordb = Chroma(
+            persist_directory=vector_path,
+            embedding_function=embedding_model
+        )
+        retriever = vectordb.as_retriever(search_kwargs={"k": k})
+        docs = retriever.get_relevant_documents(query)
+        return "\n".join([doc.page_content for doc in docs])
     except Exception as e:
-        print(f"[Chroma] Retrieval failed: {e}")
+        print(f"[Chroma Retrieval Error]: {e}")
         return ""
+
+# ----------------------------------------
+# Chunking logic
+# ----------------------------------------
+def split_text(text):
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
+    )
+    return splitter.split_text(text)
