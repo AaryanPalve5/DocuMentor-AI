@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+
 from ingestion import process_file
 from chat_agent import chat_with_memory
 from dashboard import generate_dashboard
@@ -6,74 +7,88 @@ from planner import auto_plan
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
-    return "Generative AI Backend is running."
+    return "<h2>✅ Gemini AI backend is running</h2>"
 
-# Allow both GET and POST so you can browse to /upload for a quick form
+# Upload route (GET returns form, POST handles upload)
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "GET":
-        # Simple HTML form for manual testing
-        return """
-        <h1>Upload a File</h1>
+        return '''
+        <h2>Upload File</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
-          <input type="text" name="user_id" placeholder="user_id" required><br>
-          <input type="file" name="file" required><br>
-          <button type="submit">Upload</button>
+            <input type="file" name="file" required><br>
+            <input type="text" name="user_id" placeholder="User ID" required><br>
+            <input type="submit" value="Upload">
         </form>
-        """, 200
-
-    # POST handling
+        '''
     file = request.files.get("file")
+    user_id = request.form.get("user_id", "default")
+
     if not file:
         return jsonify({"status": "error", "message": "No file provided"}), 400
 
-    user_id = request.form.get("user_id", "default")
-    try:
-        result = process_file(file, user_id)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+    result = process_file(file, user_id)
     return jsonify(result)
 
-@app.route("/chat", methods=["POST"])
+# Chat route
+@app.route("/chat", methods=["GET", "POST"])
 def chat():
+    if request.method == "GET":
+        return '''
+        <h2>Gemini Chat</h2>
+        <form method="post" action="/chat">
+            <input type="text" name="user_id" placeholder="User ID" required><br>
+            <textarea name="message" placeholder="Ask something..." required></textarea><br>
+            <input type="submit" value="Chat">
+        </form>
+        '''
     user_id = request.form.get("user_id", "default")
-    message = request.form.get("message", "")
+    message = request.form.get("message")
+
     if not message:
-        return jsonify({"status": "error", "message": "No message provided"}), 400
+        return jsonify({"error": "Message is required"}), 400
 
-    try:
-        result = chat_with_memory(user_id, message)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+    result = chat_with_memory(user_id, message)
     return jsonify(result)
 
-@app.route("/dashboard", methods=["POST"])
+# Dashboard route
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard_view():
+    if request.method == "GET":
+        return '''
+        <h2>Load Dashboard</h2>
+        <form method="post" action="/dashboard">
+            <input type="text" name="user_id" placeholder="User ID" required><br>
+            <input type="submit" value="Load Dashboard">
+        </form>
+        '''
     user_id = request.form.get("user_id", "default")
-    try:
-        result = generate_dashboard(user_id)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+    result = generate_dashboard(user_id)
     return jsonify(result)
 
-@app.route("/plan", methods=["POST"])
+# Planner route
+@app.route("/plan", methods=["GET", "POST"])
 def plan():
+    if request.method == "GET":
+        return '''
+        <h2>AI Planner</h2>
+        <form method="post" action="/plan">
+            <input type="text" name="user_id" placeholder="User ID" required><br>
+            <textarea name="context" placeholder="Describe your objective..." required></textarea><br>
+            <input type="submit" value="Generate Plan">
+        </form>
+        '''
     user_id = request.form.get("user_id", "default")
-    context = request.form.get("context", "")
+    context = request.form.get("context")
+
     if not context:
-        return jsonify({"status": "error", "message": "No context provided"}), 400
+        return jsonify({"error": "Context is required"}), 400
 
-    try:
-        result = auto_plan(user_id, context)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+    result = auto_plan(user_id, context)
     return jsonify(result)
 
+# Run
 if __name__ == "__main__":
     app.run(debug=True)

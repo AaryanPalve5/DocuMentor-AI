@@ -7,16 +7,16 @@ def generate_dashboard(user_id):
     if df is None or df.empty:
         return {"status": "error", "message": "No dashboard data"}
 
-    charts = []
     try:
+        figures = []
         if "Date" in df.columns and "Value" in df.columns:
-            line_fig = px.line(df, x="Date", y="Value", title="Value Over Time")
-            charts.append(line_fig.to_dict())
+            fig1 = px.line(df, x="Date", y="Value", title="Value Over Time")
+            figures.append(fig1.to_dict())
 
-        bar_fig = px.bar(df.head(10), title="Top Records")
-        charts.append(bar_fig.to_dict())
+        bar = px.bar(df.head(10), title="Top Records")
+        figures.append(bar.to_dict())
 
         table = df.head(20).to_dict(orient="records")
-        return {"status": "success", "figures": charts, "table": table}
+        return {"status": "success", "figures": figures, "table": table}
     except Exception as e:
         return {"status": "error", "message": str(e)}

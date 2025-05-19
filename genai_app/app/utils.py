@@ -1,76 +1,79 @@
-import os
-import sqlite3
-import pandas as pd
+import pytesseract
 from PIL import Image
+from PyPDF2 import PdfReader
+import docx
+import pandas as pd
+import sqlite3
+import whisper
+import os
+import chromadb
+from sentence_transformers import SentenceTransformer
 
-# Base directory for all FAISS stores
-EMBED_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "vector_store"))
-os.makedirs(EMBED_DIR, exist_ok=True)
+# Initialize once
+chroma_client = chromadb.PersistentClient(path="../vector_store")
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")  # lightweight + fast
 
-def extract_text_from_file(path: str) -> str:
-    ext = os.path.splitext(path)[1].lower().lstrip(".")
-    if ext == "pdf":
-        from PyPDF2 import PdfReader
-        reader = PdfReader(path)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
-
-    if ext == "txt":
-        return open(path, "r", encoding="utf-8").read()
-
-    if ext == "docx":
-        import docx
-        doc = docx.Document(path)
-        return "\n".join(p.text for p in doc.paragraphs)
-
-    if ext in ("xlsx", "xls"):
-        df = pd.read_excel(path)
-        return df.to_csv(index=False)
-
-    if ext == "db":
-        return _extract_sqlite(path)
-
-    if ext in ("jpg", "jpeg", "png"):
-        try:
-            import pytesseract
-        except ImportError:
-            raise RuntimeError("Please install pytesseract to extract text from images.")
-        return pytesseract.image_to_string(Image.open(path))
-
-    if ext in ("mp4", "mp3", "wav", "m4a"):
-        return _transcribe_media(path)
-
+def extract_text_from_file(path):
+    ext = path.split('.')[-1].lower()
+    try:
+        if ext == "pdf":
+            return " ".join([page.extract_text() for page in PdfReader(path).pages])
+        elif ext == "txt":
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        elif ext == "docx":
+            return "\n".join([p.text for p in docx.Document(path).paragraphs])
+        elif ext == "xlsx":
+            df = pd.read_excel(path)
+            return df.to_csv(index=False)
+        elif ext == "db":
+            return extract_sqlite(path)
+        elif ext in ["jpg", "jpeg", "png"]:
+            return pytesseract.image_to_string(Image.open(path))
+        elif ext in ["mp4", "mp3", "wav"]:
+            return transcribe_media(path)
+    except Exception as e:
+        print(f"⚠️ Error extracting {ext} file: {e}")
     return ""
 
-def _extract_sqlite(path: str) -> str:
+def extract_sqlite(path):
     conn = sqlite3.connect(path)
-    chunks = []
-    for (table_name,) in conn.execute("SELECT name FROM sqlite_master WHERE type='table'"):
-        df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
-        chunks.append(df.to_csv(index=False))
-    conn.close()
-    return "\n".join(chunks)
+    text = ""
+    for table in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+        df = pd.read_sql_query(f"SELECT * FROM {table[0]}", conn)
+        text += df.to_csv(index=False)
+    return text
 
-def _transcribe_media(path: str) -> str:
+def transcribe_media(path):
+    model = whisper.load_model("base")
+    result = model.transcribe(path)
+    return result["text"]
+
+def embed_and_store(text, user_id):
+    chunks = [text[i:i+1000] for i in range(0, len(text), 1000)]
+    embeddings = embedding_model.encode(chunks).tolist()
+
+    collection_name = f"user_{user_id}_docs"
     try:
-        import whisper
-        model = whisper.load_model("base")
-        result = model.transcribe(path)
-        return result.get("text", "")
+        chroma_client.delete_collection(name=collection_name)
+    except:
+        pass
+
+    collection = chroma_client.get_or_create_collection(name=collection_name)
+    collection.add(
+        documents=chunks,
+        embeddings=embeddings,
+        ids=[f"{user_id}_{i}" for i in range(len(chunks))]
+    )
+    print(f"[Chroma] Stored {len(chunks)} chunks for user {user_id}")
+
+def retrieve_relevant_chunks(user_id, query):
+    collection_name = f"user_{user_id}_docs"
+    try:
+        collection = chroma_client.get_collection(name=collection_name)
+        query_embedding = embedding_model.encode([query])[0].tolist()
+        results = collection.query(query_embeddings=[query_embedding], n_results=3)
+        return "\n".join(results["documents"][0])
     except Exception as e:
-        raise RuntimeError(f"Media transcription failed: {e}")
-
-def embed_and_store(text: str, user_id: str):
-    """
-    Splits text into 1,000‐char chunks, embeds with OpenAIEmbeddings,
-    and saves a local FAISS index under vector_store/{user_id}_store
-    """
-    from langchain.embeddings import OpenAIEmbeddings
-    from langchain.vectorstores import FAISS
-
-    embeddings = OpenAIEmbeddings()
-    chunks = [text[i : i + 1000] for i in range(0, len(text), 1000)]
-
-    index = FAISS.from_texts(chunks, embeddings)
-    user_dir = os.path.join(EMBED_DIR, f"{user_id}_store")
-    os.makedirs(user_dir, exist_ok=True)
-    index.save_local(user_dir)
+        print(f"[Chroma] Retrieval failed: {e}")
+        return ""

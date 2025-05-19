@@ -1,0 +1,73 @@
+{
+  "status": "success",
+  "figures": [
+    {
+      "layout": {
+        "title": {
+          "text": "Customer Visits Over Time"
+        }
+      },
+      "data": [
+        {
+          "type": "scatter",
+          "x": ["2024-12-01", "2024-12-02", "2024-12-03", "2024-12-04"],
+          "y": [25, 40, 30, 50],
+          "mode": "lines+markers",
+          "name": "Visits"
+        }
+      ]
+    },
+    {
+      "layout": {
+        "title": {
+          "text": "Conversions Per Source"
+        }
+      },
+      "data": [
+        {
+          "type": "bar",
+          "x": ["Website", "Email", "In-store", "Social"],
+          "y": [15, 10, 20, 5],
+          "name": "Conversions"
+        }
+      ]
+    }
+  ],
+  "table": [
+    {
+      "CustomerID": "C001",
+      "Date": "2024-12-01",
+      "Source": "Website",
+      "Converted": true,
+      "Spent": 120.5
+    },
+    {
+      "CustomerID": "C002",
+      "Date": "2024-12-02",
+      "Source": "Email",
+      "Converted": false,
+      "Spent": 0.0
+    },
+    {
+      "CustomerID": "C003",
+      "Date": "2024-12-02",
+      "Source": "In-store",
+      "Converted": true,
+      "Spent": 230.0
+    },
+    {
+      "CustomerID": "C004",
+      "Date": "2024-12-03",
+      "Source": "Social",
+      "Converted": true,
+      "Spent": 80.0
+    },
+    {
+      "CustomerID": "C005",
+      "Date": "2024-12-04",
+      "Source": "Website",
+      "Converted": false,
+      "Spent": 0.0
+    }
+  ]
+}
