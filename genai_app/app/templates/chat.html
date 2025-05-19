@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <h1>Memory Chat</h1>
+  <form action="/chat" method="post">
+    <input type="text" name="user_id" placeholder="User ID" required />
+    <textarea name="message" rows="3" placeholder="Your message here..."></textarea>
+    <button type="submit">Send</button>
+  </form>
+  {% if message %}
+    <p><strong>You:</strong> {{ message }}</p>
+    <p><strong>AI:</strong> {{ response }}</p>
+  {% endif %}
+  <a href="/">Back</a>
+</body>
+</html>

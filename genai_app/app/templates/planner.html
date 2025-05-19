@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Planner</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <h1>7-Day AI Planner</h1>
+  <form method="post" action="/plan">
+    <input type="text" name="user_id" placeholder="User ID" required />
+    <textarea name="context" placeholder="Context for planning..."></textarea>
+    <button type="submit">Generate Plan</button>
+  </form>
+  {% if plan %}
+    <ul>
+      {% for item in plan %}
+        <li>{{ item.date }}: {{ item.task }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <a href="/">Back</a>
+</body>
+</html>

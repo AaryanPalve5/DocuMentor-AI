@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <h1>Interactive Dashboard</h1>
+  {% for fig in figures %}
+    <h3>{{ fig.layout.title.text }}</h3>
+    <pre>{{ fig | tojson }}</pre>
+  {% endfor %}
+  <table border="1">
+    <tr>
+      {% for key in table[0].keys() %}
+        <th>{{ key }}</th>
+      {% endfor %}
+    </tr>
+    {% for row in table %}
+      <tr>
+        {% for val in row.values() %}
+          <td>{{ val }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+  <a href="/">Back</a>
+</body>
+</html>

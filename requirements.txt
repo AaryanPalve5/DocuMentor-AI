@@ -1,0 +1,13 @@
+flask
+python-dotenv
+langchain
+openai
+faiss-cpu
+pytesseract
+pillow
+pypdf2
+python-docx
+pandas
+plotly
+moviepy
+whisper
