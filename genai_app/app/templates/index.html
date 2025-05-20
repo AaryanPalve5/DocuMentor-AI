@@ -1,24 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Upload File</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>GenAlytics – Upload</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Upload a File</h1>
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="text" name="user_id" placeholder="User ID" required />
-    <input type="file" name="file" required />
-    <button type="submit">Upload</button>
-  </form>
-  {% if upload_result %}
-    <p><strong>Extract:</strong> {{ upload_result['text_excerpt'] or upload_result['message'] }}</p>
-  {% endif %}
-  <a href="/chat">Go to Chat</a> |
-  <form action="/dashboard" method="post" style="display:inline">
-    <input type="hidden" name="user_id" value="default" />
-    <button>Dashboard</button>
-  </form> |
-  <a href="/planner.html">Planner</a>
+  <nav class="navbar">
+    <a href="/">Home</a>
+    <a href="/upload">Upload</a>
+    <a href="/chat">Chat</a>
+    <a href="/plan">Planner</a>
+    <a href="/dashboard">Dashboard</a>
+  </nav>
+
+  <main>
+    <section class="intro">
+      <img src="/static/logo.jpg" alt="Logo" class="logo">
+      <h1>GenAlytics</h1>
+      <p>Your AI‑powered insight platform. Upload files, chat, plan, and visualize data.</p>
+    </section>
+
+    <div class="card">
+      <h2>Upload a File</h2>
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="text" name="user_id" placeholder="User ID" required>
+        <input type="file" name="file" required>
+        <button type="submit" class="btn">Upload</button>
+      </form>
+      <!--
+        After upload, your Flask view renders this page again and can inject:
+        <div class="alert success"><strong>Extracted:</strong> ...</div>
+        or
+        <div class="alert error"><strong>Error:</strong> ...</div>
+      -->
+    </div>
+  </main>
 </body>
 </html>

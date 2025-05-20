@@ -1,94 +1,91 @@
-from flask import Flask, request, jsonify
-
+from flask import Flask, render_template, request, jsonify
 from ingestion import process_file
-from chat_agent import chat_with_memory
-from dashboard import generate_dashboard
-from planner import auto_plan
+from chat_agent import chat_with_memory      # returns dict {"response": ...}
+# from dashboard import generate_dashboard    # returns dict {'figures':…, 'table':…}
+from planner import auto_plan               # returns dict {'status':…, 'plan':…}
 
 app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def index():
-    return "<h2>✅ Gemini AI backend is running</h2>"
+    """
+    Home landing page. Renders the Upload screen.
+    """
+    return render_template("index.html")
 
-# Upload route (GET returns form, POST handles upload)
+
+# Upload route (GET shows form, POST processes file)
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "GET":
-        return '''
-        <h2>Upload File</h2>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required><br>
-            <input type="text" name="user_id" placeholder="User ID" required><br>
-            <input type="submit" value="Upload">
-        </form>
-        '''
-    file = request.files.get("file")
+        # Show upload form
+        return render_template("index.html")
+    
+    # Handle file upload
     user_id = request.form.get("user_id", "default")
-
+    file = request.files.get("file")
     if not file:
         return jsonify({"status": "error", "message": "No file provided"}), 400
 
     result = process_file(file, user_id)
-    return jsonify(result)
+    # Re-render the form with the extraction result
+    return render_template("index.html", upload_result=result)
 
-# Chat route
+
+# Chat route (GET shows chat UI, POST sends message)
 @app.route("/chat", methods=["GET", "POST"])
 def chat():
     if request.method == "GET":
-        return '''
-        <h2>Gemini Chat</h2>
-        <form method="post" action="/chat">
-            <input type="text" name="user_id" placeholder="User ID" required><br>
-            <textarea name="message" placeholder="Ask something..." required></textarea><br>
-            <input type="submit" value="Chat">
-        </form>
-        '''
+        # Show chat form
+        return render_template("chat.html")
+    
     user_id = request.form.get("user_id", "default")
-    message = request.form.get("message")
-
+    message = request.form.get("message", "").strip()
     if not message:
-        return jsonify({"error": "Message is required"}), 400
+        # Show error on page if no message
+        return render_template("chat.html", error="Message is required")
 
-    result = chat_with_memory(user_id, message)
-    return jsonify(result)
+    result = chat_with_memory(user_id, message)  # {"response": "..."}
+    return render_template(
+        "chat.html",
+        user_id=user_id,
+        message=message,
+        response=result.get("response")
+    )
 
-# Dashboard route
+
+# Dashboard route (GET shows selector, POST renders charts/table)
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard_view():
     if request.method == "GET":
-        return '''
-        <h2>Load Dashboard</h2>
-        <form method="post" action="/dashboard">
-            <input type="text" name="user_id" placeholder="User ID" required><br>
-            <input type="submit" value="Load Dashboard">
-        </form>
-        '''
+        # Initially no data
+        return render_template("dashboard.html", figures=None, table=None)
+    
     user_id = request.form.get("user_id", "default")
-    result = generate_dashboard(user_id)
-    return jsonify(result)
+    data = generate_dashboard(user_id)  # {'figures': [...], 'table': [...]}
+    return render_template(
+        "dashboard.html",
+        figures=data.get("figures"),
+        table=data.get("table")
+    )
 
-# Planner route
+
+# Planner route (GET shows planner UI, POST generates plan)
 @app.route("/plan", methods=["GET", "POST"])
 def plan():
     if request.method == "GET":
-        return '''
-        <h2>AI Planner</h2>
-        <form method="post" action="/plan">
-            <input type="text" name="user_id" placeholder="User ID" required><br>
-            <textarea name="context" placeholder="Describe your objective..." required></textarea><br>
-            <input type="submit" value="Generate Plan">
-        </form>
-        '''
+        # Show planner form
+        return render_template("planner.html", plan=None)
+    
     user_id = request.form.get("user_id", "default")
-    context = request.form.get("context")
-
+    context = request.form.get("context", "").strip()
     if not context:
-        return jsonify({"error": "Context is required"}), 400
+        return render_template("planner.html", error="Context is required")
 
-    result = auto_plan(user_id, context)
-    return jsonify(result)
+    result = auto_plan(user_id, context)  # {'status':..., 'plan': [...]}
+    return render_template("planner.html", plan=result.get("plan"))
 
-# Run
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Ensure Flask reloads on code changes
+    app.run(debug=True, host="0.0.0.0", port=5000)

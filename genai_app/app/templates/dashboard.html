@@ -1,29 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>GenAlytics – Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-  <h1>Interactive Dashboard</h1>
-  {% for fig in figures %}
-    <h3>{{ fig.layout.title.text }}</h3>
-    <pre>{{ fig | tojson }}</pre>
-  {% endfor %}
-  <table border="1">
-    <tr>
-      {% for key in table[0].keys() %}
-        <th>{{ key }}</th>
-      {% endfor %}
-    </tr>
-    {% for row in table %}
-      <tr>
-        {% for val in row.values() %}
-          <td>{{ val }}</td>
-        {% endfor %}
-      </tr>
-    {% endfor %}
-  </table>
-  <a href="/">Back</a>
+  <nav class="navbar">
+    <a href="/">Home</a>
+    <a href="/upload">Upload</a>
+    <a href="/chat">Chat</a>
+    <a href="/plan">Planner</a>
+    <a href="/dashboard">Dashboard</a>
+  </nav>
+
+  <main>
+    <section class="intro">
+      <img src="/static/logo.jpg" alt="Logo" class="logo">
+      <h1>Interactive Dashboard</h1>
+      <p>Visualize numeric columns from your uploaded Excel or CSV data.</p>
+    </section>
+
+    <div class="card">
+      <!--
+        Loop through your Plotly figures server‑side, and for each:
+      -->
+      <div id="chart-0" class="chart"></div>
+      <script>
+        // replace `figure0` with your injected JSON
+        // Plotly.newPlot('chart-0', figure0.data, figure0.layout);
+      </script>
+      
+      <!-- Then render your table -->
+      <table>
+        <thead>
+          <tr>
+            <!-- <th>Column1</th> ... -->
+          </tr>
+        </thead>
+        <tbody>
+          <!-- <tr><td>Value1</td>...</tr> -->
+        </tbody>
+      </table>
+    </div>
+  </main>
 </body>
 </html>

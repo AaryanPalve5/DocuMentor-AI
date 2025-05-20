@@ -1,35 +1,22 @@
-import pandas as pd
+from flask import Blueprint, render_template, request
 import plotly.express as px
-from memory_store import get_user_dataframe
+from .memory_store import get_user_data
 
-def generate_dashboard(user_id):
-    df = get_user_dataframe(user_id)
-    if df is None or df.empty:
-        return {"status": "error", "message": "No dashboard data"}
+dashboard_bp = Blueprint('dashboard', __name__, template_folder='templates')
 
-    try:
-        figures = []
+@dashboard_bp.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    """
+    Build Plotly figures for numeric columns and render pure HTML
+    in templates/dashboard.html.
+    """
+    user_id = request.form.get('user_id', 'default')
+    df = get_user_data(user_id)
+    figures = []
+    table = df.to_dict(orient='records') if not df.empty else []
 
-        # Line chart if Date and Value present
-        if "Date" in df.columns and "Value" in df.columns:
-            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-            df.dropna(subset=["Date"], inplace=True)
-            fig1 = px.line(df, x="Date", y="Value", title="Value Over Time")
-            figures.append(fig1.to_plotly_json())  # ✅ JSON-safe format
+    for col in df.select_dtypes(include=['number']).columns:
+        fig = px.bar(df, x=df.index, y=col, title=col)
+        figures.append(fig)
 
-        # Bar chart
-        fig2 = px.bar(df.head(10), title="Top 10 Records")
-        figures.append(fig2.to_plotly_json())  # ✅ Safe for jsonify
-
-        # Table conversion: convert all non-serializable items (like np.int64) to built-ins
-        table_data = df.head(20).copy()
-        table = table_data.astype(str).to_dict(orient="records")
-
-        return {
-            "status": "success",
-            "figures": figures,
-            "table": table
-        }
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    return render_template('dashboard.html', figures=figures, table=table)

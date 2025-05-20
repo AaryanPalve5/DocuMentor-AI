@@ -1,20 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chat</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>GenAlytics – Chat</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Memory Chat</h1>
-  <form action="/chat" method="post">
-    <input type="text" name="user_id" placeholder="User ID" required />
-    <textarea name="message" rows="3" placeholder="Your message here..."></textarea>
-    <button type="submit">Send</button>
-  </form>
-  {% if message %}
-    <p><strong>You:</strong> {{ message }}</p>
-    <p><strong>AI:</strong> {{ response }}</p>
-  {% endif %}
-  <a href="/">Back</a>
+  <nav class="navbar">
+    <a href="/">Home</a>
+    <a href="/upload">Upload</a>
+    <a href="/chat">Chat</a>
+    <a href="/plan">Planner</a>
+    <a href="/dashboard">Dashboard</a>
+  </nav>
+
+  <main>
+    <section class="intro">
+      <img src="/static/logo.jpg" alt="Logo" class="logo">
+      <h1>Memory Chat</h1>
+      <p>Ask GenAlytics about your uploaded data.</p>
+    </section>
+
+    <div class="card">
+      <form action="/chat" method="post">
+        <input type="text" name="user_id" placeholder="User ID" value="{{ user_id or '' }}" required>
+        <textarea name="message" rows="4" placeholder="Your message..." required>{{ message or '' }}</textarea>
+        <button type="submit" class="btn">Send</button>
+      </form>
+
+      {% if error %}
+      <div class="alert error">{{ error }}</div>
+      {% endif %}
+
+      {% if response %}
+      <div class="chat-entry">
+        <p><span class="label you">You:</span> {{ message }}</p>
+        <p><span class="label ai">AI:</span> {{ response }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
 </body>
 </html>
