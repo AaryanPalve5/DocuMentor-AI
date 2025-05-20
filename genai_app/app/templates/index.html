@@ -1,27 +1,56 @@
-<!-- index.html (Upload Page) -->
-{% extends "base.html" %}
-{% block content %}
-<div class="card upload-panel">
-  <h2>Upload a File</h2>
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="text" name="user_id" placeholder="User ID" required />
-    <input type="file" name="file" required />
-    <button type="submit" class="btn">Upload</button>
-  </form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device‑width, initial‑scale=1.0" />
+  <title>DocuMentor AI – Upload</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <!-- include navbar from base.html -->
+  <!-- ... navbar HTML here ... -->
 
-  {% if success_type %}
-    <div class="toast success">
-      {{ success_type == 'image' and "Image uploaded successfully" or "Document uploaded successfully" }}
-    </div>
-    <div class="toast-actions">
-      <button onclick="location.href='/chat'" class="btn">Chat with Document</button>
-      <button onclick="location.href='/plan'" class="btn">Plan an Event</button>
-      <button onclick="location.href='/insights'" class="btn">Get Insights</button>
-    </div>
-  {% endif %}
+  <main>
+    <div class="card upload-panel">
+      <h2>Upload a File</h2>
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="text" name="user_id" placeholder="User ID" required />
+        <input type="file" name="file" required />
+        <button type="submit" class="btn">Upload</button>
+      </form>
 
-  {% if error %}
-    <div class="toast error">{{ error }}</div>
-  {% endif %}
-</div>
-{% endblock %}
+      <!-- Placeholder for success message: server should add class="visible" when done -->
+      <div class="toast success" id="upload-success" style="display:none;">
+        <!-- JS or server must set innerText to "Document uploaded successfully" or "Image uploaded successfully" -->
+      </div>
+      <div class="toast-actions" id="upload-actions" style="display:none;">
+        <button class="btn" onclick="location.href='/chat'">Chat with Document</button>
+        <button class="btn" onclick="location.href='/plan'">Plan an Event</button>
+        <button class="btn" onclick="location.href='/insights'">Get Insights</button>
+      </div>
+
+      <!-- Placeholder for error -->
+      <div class="toast error" id="upload-error" style="display:none;"></div>
+    </div>
+  </main>
+
+  <script>
+    // Example JS to show toast based on URL param ?success_type=document|image
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('success_type');
+    if (type) {
+      const msg = type === 'image'
+        ? 'Image uploaded successfully'
+        : 'Document uploaded successfully';
+      document.getElementById('upload-success').innerText = msg;
+      document.getElementById('upload-success').style.display = 'block';
+      document.getElementById('upload-actions').style.display = 'flex';
+    }
+    if (params.get('error')) {
+      const errDiv = document.getElementById('upload-error');
+      errDiv.innerText = params.get('error');
+      errDiv.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

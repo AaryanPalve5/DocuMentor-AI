@@ -1,27 +1,41 @@
-<!-- dashboard.html -->
-{% extends "base.html" %}
-{% block content %}
-<div class="card dashboard-panel">
-  <h2>Interactive Dashboard</h2>
-  <p>Visualize numeric columns from your uploaded data.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device‑width, initial‑scale=1.0" />
+  <title>DocuMentor AI – Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://cdn.plot.ly/plotly‑latest.min.js"></script>
+</head>
+<body>
+  <!-- include navbar from base.html -->
+  <!-- ... navbar HTML here ... -->
 
-  <div class="charts">
-    <!-- Repeat server‑side for each Plotly figure -->
-    <div id="chart-0" class="chart"></div>
-    <script>
-      // Plotly.newPlot('chart-0', figure0.data, figure0.layout);
-    </script>
-  </div>
+  <main>
+    <div class="card dashboard-panel">
+      <h2>Interactive Dashboard</h2>
+      <p>Visualize numeric columns from your uploaded data.</p>
+      <div class="charts" id="charts-container">
+        <!-- Server should inject <div class="chart" id="chart‑N"></div> for each figure -->
+      </div>
+      <table>
+        <thead><tr><!-- column headers here --></tr></thead>
+        <tbody><!-- data rows here --></tbody>
+      </table>
+    </div>
+  </main>
 
-  <table>
-    <thead>
-      <tr>
-        <!-- <th>Column1</th> -->
-      </tr>
-    </thead>
-    <tbody>
-      <!-- <tr><td>Value1</td></tr> -->
-    </tbody>
-  </table>
-</div>
-{% endblock %}
+  <script>
+    // Example: server sets a global "figures" array
+    if (window.figures) {
+      figures.forEach((fig, i) => {
+        const div = document.createElement('div');
+        div.id = 'chart-' + i;
+        div.className = 'chart';
+        document.getElementById('charts-container').appendChild(div);
+        Plotly.newPlot(div.id, fig.data, fig.layout);
+      });
+    }
+  </script>
+</body>
+</html>
