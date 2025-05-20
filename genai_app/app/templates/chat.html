@@ -1,47 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>GenAlytics – Chat</title>
-  <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
-  <nav class="navbar">
-    <a href="/">Home</a>
-    <a href="/upload">Upload</a>
-    <a href="/chat">Chat</a>
-    <a href="/plan">Planner</a>
-    <a href="/dashboard">Dashboard</a>
-  </nav>
+<!-- chat.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="card chat-panel">
+  <h2>Document Chat</h2>
+  <p>Ask DocuMentor AI about your uploaded documents.</p>
+  <form action="/chat" method="post" class="chat-form">
+    <input type="text" name="user_id" placeholder="User ID" value="{{ user_id or '' }}" required />
+    <textarea name="message" rows="2" placeholder="Your message..." required>{{ message or '' }}</textarea>
+    <button type="submit" class="btn">Send</button>
+  </form>
 
-  <main>
-    <section class="intro">
-      <img src="/static/logo.jpg" alt="Logo" class="logo">
-      <h1>Memory Chat</h1>
-      <p>Ask GenAlytics about your uploaded data.</p>
-    </section>
+  {% if error %}
+    <div class="toast error">{{ error }}</div>
+  {% endif %}
 
-    <div class="card">
-      <form action="/chat" method="post">
-        <input type="text" name="user_id" placeholder="User ID" value="{{ user_id or '' }}" required>
-        <textarea name="message" rows="4" placeholder="Your message..." required>{{ message or '' }}</textarea>
-        <button type="submit" class="btn">Send</button>
-      </form>
-
-      {% if error %}
-      <div class="alert error">{{ error }}</div>
-      {% endif %}
-
-      {% if response %}
-      <div class="chat-entry">
-        <p><span class="label you">You:</span> {{ message }}</p>
-        <p><span class="label ai">AI:</span> {{ response }}</p>
+  {% if response %}
+    <div class="chat-entry">
+      <p><span class="label you">You:</span> {{ message }}</p>
+      <p><span class="label ai">AI:</span> {{ response }}</p>
+      <div class="post-prompt">
+        Continue chatting with the document or ask another question.
       </div>
-      {% endif %}
     </div>
-  </main>
-</body>
-</html>
-
-<!-- starting with all the final UI edits -->
+  {% endif %}
+</div>
+{% endblock %}

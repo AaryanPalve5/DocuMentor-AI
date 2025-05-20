@@ -1,50 +1,26 @@
-<!-- templates/planner.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>GenAlytics – Planner</title>
-  <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
-  <nav class="navbar">
-    <a href="/">Home</a>
-    <a href="/upload">Upload</a>
-    <a href="/chat">Chat</a>
-    <a href="/plan">Planner</a>
-    <a href="/dashboard">Dashboard</a>
-  </nav>
+<!-- planner.html (Event Planner) -->
+{% extends "base.html" %}
+{% block content %}
+<div class="card planner-panel">
+  <h2>7‑Day AI Planner</h2>
+  <p>Generate a week‑long plan based on your context.</p>
+  <form action="/plan" method="post">
+    <input type="text" name="user_id" placeholder="User ID" required />
+    <textarea name="context" rows="4" placeholder="Context for planning..." required></textarea>
+    <button type="submit" class="btn">Generate Plan</button>
+  </form>
 
-  <main>
-    <section class="intro">
-      <img src="/static/logo.jpg" alt="Logo" class="logo">
-      <h1>7‑Day AI Planner</h1>
-      <p>Generate a week‑long plan based on your context.</p>
-    </section>
+  {% if error %}
+    <div class="toast error">{{ error }}</div>
+  {% endif %}
 
-    <div class="card">
-      <form action="/plan" method="post">
-        <input type="text" name="user_id" placeholder="User ID" required>
-        <textarea name="context" rows="4" placeholder="Context for planning..." required></textarea>
-        <button type="submit" class="btn">Generate Plan</button>
-      </form>
-
-      {% if error %}
-      <div class="alert error">{{ error }}</div>
-      {% endif %}
-
-      {% if plan %}
-      <div class="alert success">
-        Your 7‑day plan:
-      </div>
-      <ul class="plan-list">
-        {% for item in plan %}
+  {% if plan %}
+    <div class="toast success">Your 7‑day plan:</div>
+    <ul class="plan-list">
+      {% for item in plan %}
         <li><strong>{{ item.date }}:</strong> {{ item.task }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-    </div>
-  </main>
-</body>
-</html>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}
