@@ -114,13 +114,7 @@
     border-bottom-left-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
   }
-  /* .navbar .logo {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: var(--shadow-sm);
-  } */
+  
   .navbar .nav-links {
     display: flex;
     gap: var(--space-md);
