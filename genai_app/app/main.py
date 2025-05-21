@@ -45,7 +45,7 @@ def chat():
         # Show error on page if no message
         return render_template("chat.html", error="Message is required")
 
-    result = chat_with_memory(user_id, message)  # {"response": "..."}
+    result = chat_with_memory(user_id, message)  
     return render_template(
         "chat.html",
         user_id=user_id,
@@ -62,7 +62,7 @@ def dashboard_view():
         return render_template("dashboard.html", figures=None, table=None)
     
     user_id = request.form.get("user_id", "default")
-    data = generate_dashboard(user_id)  # {'figures': [...], 'table': [...]}
+    data = generate_dashboard(user_id) 
     return render_template(
         "dashboard.html",
         figures=data.get("figures"),
@@ -82,7 +82,7 @@ def plan():
     if not context:
         return render_template("planner.html", error="Context is required")
 
-    result = auto_plan(user_id, context)  # {'status':..., 'plan': [...]}
+    result = auto_plan(user_id, context)
     return render_template("planner.html", plan=result.get("plan"))
 
 
