@@ -114,7 +114,7 @@
     border-bottom-left-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
   }
-  
+
   .navbar .nav-links {
     display: flex;
     gap: var(--space-md);
@@ -373,7 +373,5 @@
   }
   .chart { height: 400px; }
   
-  /* ====================================================================
-     End of Enhanced Dark Mode CSS
-     ==================================================================== */
+
   
