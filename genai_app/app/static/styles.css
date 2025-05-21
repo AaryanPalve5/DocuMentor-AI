@@ -1,12 +1,3 @@
-/* ====================================================================
-   Enhanced Dark Mode CSS
-   ---------------------------------------------------------------
-   A comprehensive, modern dark theme with responsive layout,
-   CSS variables, animations, utility classes, and accessibility
-   enhancements. Includes custom scrollbars, improved button hover,
-   typography, cards, forms, modals, tooltips, tables, and charts.
-   File Length: 386+ lines
-   ==================================================================== */
 
    :root {
     /* Color Palette */
@@ -225,7 +216,7 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.5rem;
     padding: var(--space-md) var(--space-xl);
     font-size: 1rem;
     border: none;
