@@ -1,53 +1,50 @@
+<!-- templates/planner.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device‑width, initial‑scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>DocuMentor AI – Planner</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <!-- include navbar from base.html -->
-  <!-- ... navbar HTML here ... -->
+  <nav class="navbar">
+    <a href="/">Home</a>
+    <a href="/upload">Upload</a>
+    <a href="/chat">Chat</a>
+    <a href="/plan">Planner</a>
+    <a href="/dashboard">Dashboard</a>
+  </nav>
 
   <main>
-    <div class="card planner-panel">
-      <h2>7‑Day AI Planner</h2>
+    <section class="intro">
+      <img src="/static/logo.jpg" alt="Logo" class="logo">
+      <h1>7‑Day AI Planner</h1>
       <p>Generate a week‑long plan based on your context.</p>
-      <form id="planner-form" action="/plan" method="post">
-        <input type="text" name="user_id" placeholder="User ID" required />
+    </section>
+
+    <div class="card">
+      <form action="/plan" method="post">
+        <input type="text" name="user_id" placeholder="User ID" required>
         <textarea name="context" rows="4" placeholder="Context for planning..." required></textarea>
-        <button type="submit" class="btn">Generate Plan</button>
+        <button type="submit" class="btn">DocuMentor AI Plan.</button>
       </form>
 
-      <div class="toast error" id="plan-error" style="display:none;"></div>
-      <div class="toast success" id="plan-success" style="display:none;">Your 7‑day plan:</div>
-      <ul class="plan-list" id="plan-list"></ul>
+      {% if error %}
+      <div class="alert error">{{ error }}</div>
+      {% endif %}
+
+      {% if plan %}
+      <div class="alert success">
+        Your 7‑day plan:
+      </div>
+      <ul class="plan-list">
+        {% for item in plan %}
+        <li><strong>{{ item.date }}:</strong> {{ item.task }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </div>
   </main>
-
-  <script>
-    document.getElementById('planner-form').onsubmit = async e => {
-      e.preventDefault();
-      const form = e.target;
-      const data = new FormData(form);
-      const res = await fetch(form.action, { method: 'POST', body: data });
-      const json = await res.json();
-      if (json.error) {
-        const err = document.getElementById('plan-error');
-        err.innerText = json.error;
-        err.style.display = 'block';
-        return;
-      }
-      document.getElementById('plan-success').style.display = 'block';
-      const list = document.getElementById('plan-list');
-      list.innerHTML = '';
-      json.plan.forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${item.date}:</strong> ${item.task}`;
-        list.appendChild(li);
-      });
-    };
-  </script>
 </body>
 </html>

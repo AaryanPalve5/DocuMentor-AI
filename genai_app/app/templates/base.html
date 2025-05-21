@@ -2,41 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device‑width, initial‑scale=1.0" />
-  <title>DocuMentor AI</title>
-  <meta name="description" content="DocuMentor AI – A smarter way to interact with knowledge. Turn documents into dialogue. Read less. Know more. Ask your data." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title or 'DocuMentor AI' }}</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <!-- NAVBAR -->
   <nav class="navbar">
-    <!-- 3D circular logo -->
-    <img src="/static/logo.jpg" alt="DocuMentor AI" class="logo" />
-    <!-- Uiverse buttons for nav -->
-    <button class="button" onclick="location.href='/'">
-      <div class="dots_border"></div>
-      <!-- sparkle SVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="sparkle">
-        <path class="path" stroke-linejoin="round" stroke-linecap="round" stroke="black" fill="black"
-          d="M14.187 8.096L15 5..."></path>
-        <path class="path" ... d="M6 14.25L5.741 15.285..."></path>
-        <path class="path" ... d="M6.5 4L6.303 4.5915..."></path>
-      </svg>
-      <span class="text_button">Home</span>
-    </button>
-    <button class="button" onclick="location.href='/upload'"><div class="dots_border"></div><span class="text_button">Upload</span></button>
-    <button class="button" onclick="location.href='/chat'"><div class="dots_border"></div><span class="text_button">Chat</span></button>
-    <button class="button" onclick="location.href='/plan'"><div class="dots_border"></div><span class="text_button">Planner</span></button>
-    <button class="button" onclick="location.href='/dashboard'"><div class="dots_border"></div><span class="text_button">Dashboard</span></button>
+    <a href="/">Home</a>
+    <a href="/upload">Upload</a>
+    <a href="/chat">Chat</a>
+    <a href="/plan">Planner</a>
+    <a href="/dashboard">Dashboard</a>
   </nav>
-
   <main>
-    <!-- Page-specific content will go here -->
+    <section class="intro">
+      <img src="/static/logo.jpg" alt="Logo" class="logo" />
+      <h1>Welcome to DocuMentor AI</h1>
+      <p>Your AI-powered insight platform. Upload files, chat with memory, plan tasks, and visualize data—all in one place</p>
+    </section>
+    {% block content %}{% endblock %}
   </main>
-
-  <footer class="footer">
-    <img src="/static/logo.jpg" alt="DocuMentor AI" class="logo" />
-    <p>© 2025 DocuMentor AI. Every file, every format – one intelligent assistant.</p>
-  </footer>
 </body>
 </html>
